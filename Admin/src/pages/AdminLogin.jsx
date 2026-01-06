@@ -11,14 +11,14 @@ const AdminLogin = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await api.post("/user/login", { email, password });
+      const response = await api.post("/api/user/login", { email, password });
       const { token } = response.data;
       localStorage.setItem("token", token);
       // Ideally we should check if user is admin here or redirect and let middleware catch it
       // For now, assuming successful login means we can proceed, but we should verify role.
       // A better approach: fetch profile after login to check role.
       
-      const userRes = await api.get("/user/me");
+      const userRes = await api.get("/api/user/me");
       if (userRes.data.data.role !== "admin") {
         setError("Access denied. Not an admin.");
         return;

@@ -11,7 +11,7 @@ const Analytics = () => {
 
   const fetchAnalytics = async () => {
     try {
-      const response = await api.get('/admin/analytics');
+      const response = await api.get('/api/admin/analytics');
       // Fix data mapping if necessary based on backend response structure
       // Backend returns { dailyOrders: [ { _id: "2023-01-01", orders: 5, revenue: 100 } ] }
       const chartData = response.data.dailyOrders.map(item => ({
