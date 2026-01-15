@@ -20,6 +20,12 @@
 @utility translate-z-10 {
   transform: translateZ(10px);
 }
+@utility transform-style-3d {
+  transform-style: preserve-3d;
+}
+@utility backface-hidden {
+  backface-visibility: hidden;
+}
 
 @keyframes scan-y {
     0% { transform: translateY(-100%); }

@@ -1,27 +1,35 @@
 import { Link } from "react-router-dom";
-import { FiSearch, FiShield, FiTag, FiCheckCircle, FiArrowRight } from "react-icons/fi";
-import { useLayoutEffect, useRef } from "react";
+import { FiSearch, FiShield, FiArrowRight, FiCheckCircle } from "react-icons/fi";
+import { useLayoutEffect, useRef, useState, useEffect } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import SplitType from 'split-type';
-import Lenis from '@studio-freight/lenis'
+import Lenis from '@studio-freight/lenis';
 
 gsap.registerPlugin(ScrollTrigger);
 
 const Home = () => {
     const heroRef = useRef(null);
+    const deviceRef = useRef(null);
+    const primaryBtnRef = useRef(null);
     const bentoRef = useRef(null);
     const inventoryRef = useRef(null);
     
-    // Floating items data (Restored)
-    const floatingItems = [
-        { id: 1, type: "textbook", label: "Calculus", color: "bg-blue-500", x: -20, y: -15 },
-        { id: 2, type: "tech", label: "iPad Pro", color: "bg-gray-800", x: 25, y: -25 },
-        { id: 3, type: "gear", label: "Lab Coat", color: "bg-white text-gray-800", x: -30, y: 20 },
-        { id: 4, type: "camera", label: "Canon EOS", color: "bg-black", x: 20, y: 15 },
-        { id: 5, type: "music", label: "Guitar", color: "bg-amber-600", x: -10, y: 35 },
-        { id: 6, type: "tool", label: "Drafter", color: "bg-slate-400", x: 35, y: -10 },
+    // Placeholder images - User should replace these
+    const [currentImage, setCurrentImage] = useState(0);
+    const images = [
+        "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=1000&auto=format", // Book/Study
+        "https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=1000&auto=format", // Tech
+        "https://images.unsplash.com/photo-1550029402-226113b0c583?q=80&w=1000&auto=format"  // Campus
     ];
+
+    // Image Slider Interval
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentImage((prev) => (prev + 1) % images.length);
+        }, 4000);
+        return () => clearInterval(interval);
+    }, [images.length]);
 
     useLayoutEffect(() => {
         // Initialize Lenis Smooth Scroll
@@ -29,180 +37,246 @@ const Home = () => {
             duration: 1.2,
             easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
             direction: 'vertical',
-            gestureDirection: 'vertical',
             smooth: true,
-            mouseMultiplier: 1,
-            smoothTouch: false,
-            touchMultiplier: 2,
-        })
+        });
 
         function raf(time) {
-            lenis.raf(time)
-            requestAnimationFrame(raf)
+            lenis.raf(time);
+            requestAnimationFrame(raf);
         }
-
-        requestAnimationFrame(raf)
+        requestAnimationFrame(raf);
 
         const ctx = gsap.context(() => {
-            
-            // 1. Split-Text Reveal for Hero
+            // 1. Hero Reveal Animation
             const headline = new SplitType('#hero-headline', { types: 'chars, words' });
-            const subhead = new SplitType('#hero-subhead', { types: 'lines' });
             
+            // Initial Set States
+            gsap.set(deviceRef.current, { rotationY: -10, rotationX: 5 });
+            
+            // Headline Reveal
             gsap.from(headline.chars, {
-                y: 20,
+                y: 50,
                 opacity: 0,
+                rotateX: -90,
                 stagger: 0.02,
-                duration: 1.2,
-                ease: "expo.out",
+                duration: 1,
+                ease: "power3.out",
                 delay: 0.2
             });
 
-            gsap.from(subhead.lines, {
-                y: 15,
+            // Subhead & Buttons Reveal
+            gsap.from(".hero-content-reveal", {
+                y: 30,
                 opacity: 0,
                 stagger: 0.1,
-                duration: 1,
-                ease: "power2.out",
-                delay: 0.8
+                duration: 0.8,
+                delay: 0.6,
+                ease: "power2.out"
+            });
+            
+            // Device Frame Entrance
+            gsap.from(deviceRef.current, {
+                x: 100,
+                opacity: 0,
+                rotationY: 20,
+                duration: 1.5,
+                delay: 0.4,
+                ease: "power3.out"
             });
 
-            // 2. Anti-Gravity Physics for Floating Cards
-            const floatCards = document.querySelectorAll(".float-card");
-            floatCards.forEach((card) => {
-                // Random drift
-                gsap.to(card, {
-                    y: "random(-20, 20)",
-                    x: "random(-10, 10)",
-                    rotation: "random(-5, 5)",
-                    duration: "random(3, 5)",
-                    repeat: -1,
-                    yoyo: true,
-                    ease: "sine.inOut"
-                });
+            // 2. Light Beams Animation
+            gsap.to(".light-beam", {
+                x: "100vw",
+                y: "50vh",
+                duration: "random(8, 12)",
+                repeat: -1,
+                ease: "none",
+                opacity: 0,
+                yoyo: true,
+                stagger: {
+                    amount: 5,
+                    from: "random"
+                }
             });
 
-            // Mouse Move Parallax
-            const handleHeroMouseMove = (e) => {
-                const x = (e.clientX / window.innerWidth - 0.5) * 30; // 15px range
-                const y = (e.clientY / window.innerHeight - 0.5) * 30;
+            // 3. Magnetic Button Effect
+            const btn = primaryBtnRef.current;
+            if (btn) {
+                const xTo = gsap.quickTo(btn, "x", { duration: 0.4, ease: "power3" });
+                const yTo = gsap.quickTo(btn, "y", { duration: 0.4, ease: "power3" });
+                const mouseEnter = (e) => {
+                    const { left, top, width, height } = btn.getBoundingClientRect();
+                    const x = e.clientX - left - width / 2;
+                    const y = e.clientY - top - height / 2;
+                    xTo(x * 0.3);
+                    yTo(y * 0.3);
+                };
+                const mouseLeave = () => {
+                    xTo(0);
+                    yTo(0);
+                };
                 
-                gsap.to(floatCards, {
-                    x: -x, // Inverse move
-                    y: -y,
+                btn.addEventListener('mousemove', mouseEnter);
+                btn.addEventListener('mouseleave', mouseLeave);
+            }
+
+            // 4. Device Tilt on Mouse Move
+            const handleMouseMove = (e) => {
+                if (!deviceRef.current) return;
+                const xPct = (e.clientX / window.innerWidth) - 0.5;
+                const yPct = (e.clientY / window.innerHeight) - 0.5;
+                
+                gsap.to(deviceRef.current, {
+                    rotationY: xPct * 10, // Max 5 deg tilt
+                    rotationX: -yPct * 10,
                     duration: 1,
                     ease: "power2.out"
                 });
             };
-            heroRef.current.addEventListener("mousemove", handleHeroMouseMove);
+            heroRef.current?.addEventListener("mousemove", handleMouseMove);
 
-            // 3. Bottom Glow Breathing
-            gsap.to(".hero-glow", {
-                scale: 1.2,
-                opacity: 0.6,
-                duration: 3,
-                repeat: -1,
-                yoyo: true,
-                ease: "sine.inOut"
-            });
 
-            // 4. Bento Grid Reveal
+            // 5. Bento Grid & Inventory Animations (Preserved)
             gsap.from(".bento-box", {
-                scrollTrigger: {
-                    trigger: bentoRef.current,
-                    start: "top 80%",
-                },
-                y: 50,
-                opacity: 0,
-                duration: 0.8,
-                stagger: 0.1,
-                ease: "power3.out"
+                scrollTrigger: { trigger: bentoRef.current, start: "top 80%" },
+                y: 50, opacity: 0, duration: 0.8, stagger: 0.1, ease: "power3.out"
+            });
+            
+             gsap.from(".inventory-item", {
+                scrollTrigger: { trigger: inventoryRef.current, start: "top 85%" },
+                y: 30, opacity: 0, duration: 0.6, stagger: 0.05, ease: "power2.out"
             });
 
-            // 5. Floating Inventory Stagger
-            gsap.from(".inventory-item", {
-                scrollTrigger: {
-                    trigger: inventoryRef.current,
-                    start: "top 85%",
-                },
-                y: 30,
-                opacity: 0,
-                duration: 0.6,
-                stagger: 0.05,
-                ease: "power2.out"
-            });
-
-        }, [heroRef, bentoRef, inventoryRef]);
+        }, heroRef);
 
         return () => {
-             ctx.revert();
-             lenis.destroy();
-        }
+            ctx.revert();
+            lenis.destroy();
+        };
     }, []);
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-[#0B0C10] transition-colors duration-500 overflow-x-hidden font-sans">
+        <div className="min-h-screen bg-slate-50 dark:bg-[#02040a] transition-colors duration-500 overflow-x-hidden font-sans selection:bg-emerald-500/30">
             
-            {/* HERO SECTION - Anti-Gravity */}
-            <section ref={heroRef} className="relative min-h-[90vh] flex flex-col justify-center items-center py-20 px-6 overflow-hidden perspective-1000">
-                {/* Background - Clean Light / Deep Dark */}
-                <div className="absolute inset-0 bg-gradient-to-b from-slate-50 to-white dark:from-[#0F172A] dark:to-[#020617] -z-20"></div>
+            {/* HERO SECTION - Redesigned SaaS Style */}
+            <section ref={heroRef} className="relative min-h-screen flex items-center justify-center p-6 sm:p-12 overflow-hidden bg-gradient-to-b from-slate-50 to-white dark:from-[#050505] dark:via-[#0a0a0a] dark:to-[#020202]">
                 
-                <div className="hero-glow absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-emerald-500/10 dark:bg-emerald-500/5 rounded-full blur-[120px] -z-10 pointer-events-none"></div>
-
-                {/* Floating 3D Cards */}
-                <div className="absolute inset-0 pointer-events-none z-0">
-                   {floatingItems.map((item, i) => (
-                       <div 
-                           key={item.id} 
-                           className={`float-card absolute p-4 rounded-xl glass-panel shadow-xl dark:shadow-2xl backdrop-blur-md hidden md:block border border-white/20 dark:border-white/5 bg-white/40 dark:bg-slate-800/40`}
-                           style={{
-                               // Distribute roughly in a circle/oval around center
-                               top: i === 0 ? '20%' : i === 1 ? '15%' : i === 2 ? '70%' : i === 3 ? '65%' : i === 4 ? '40%' : '50%',
-                               left: i === 0 ? '15%' : i === 1 ? '75%' : i === 2 ? '20%' : i === 3 ? '80%' : i === 4 ? '5%' : '90%',
-                           }}
-                       >
-                           <div className={`w-12 h-12 mb-2 rounded-lg ${item.color} opacity-90 shadow-inner flex items-center justify-center text-white font-bold text-lg`}>
-                               {item.type === 'textbook' && '📚'}
-                               {item.type === 'tech' && '💻'}
-                               {item.type === 'gear' && '🥼'}
-                               {item.type === 'camera' && '📸'}
-                               {item.type === 'music' && '🎸'}
-                               {item.type === 'tool' && '📐'}
-                           </div>
-                           <div className="text-sm font-bold text-slate-800 dark:text-white">{item.label}</div>
-                           <div className="h-1 w-8 bg-emerald-500/50 rounded-full mt-1"></div>
-                       </div>
-                   ))}
+                {/* Background Aesthetics */}
+                <div className="absolute inset-0 max-w-[100vw] overflow-hidden pointer-events-none">
+                     {/* Light Beams */}
+                     <div className="light-beam absolute top-0 left-[-20%] w-[1px] h-[150vh] bg-gradient-to-b from-transparent via-emerald-500/20 to-transparent rotate-45 blur-[1px]"></div>
+                     <div className="light-beam absolute top-[-30%] left-0 w-[1px] h-[150vh] bg-gradient-to-b from-transparent via-white/10 to-transparent rotate-[30deg] blur-[2px]"></div>
+                     <div className="light-beam absolute top-[10%] right-[-10%] w-[1px] h-[150vh] bg-gradient-to-b from-transparent via-emerald-400/10 to-transparent -rotate-[15deg] blur-[1px]"></div>
+                     
+                     {/* Subtle Glows */}
+                     <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[100px] animate-pulse"></div>
+                     <div className="absolute bottom-0 right-0 w-[800px] h-[600px] bg-indigo-500/5 rounded-full blur-[120px]"></div>
                 </div>
 
-                {/* Content */}
-                <div className="relative z-10 text-center max-w-4xl mx-auto">
-                    <div id="hero-headline" className="text-5xl md:text-8xl font-black text-slate-900 dark:text-white tracking-tighter leading-[1.1] mb-6 drop-shadow-sm">
-                        The Campus <br className="hidden md:block"/>
-                        <span className="text-emerald-600 dark:text-emerald-500">Secondary Market</span>,  <br className="hidden md:block"/>
-                        Optimized.
-                    </div>
-                    <div id="hero-subhead" className="text-lg md:text-2xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto font-medium leading-relaxed mb-10">
-                        A high-performance trading layer for your university. Liquidate your dorm essentials or find gear in seconds. Commission-free. Verified only.
+                <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center relative z-10 pt-20 lg:pt-0">
+                    
+                    {/* LEFT COLUMN: Typography & CTA */}
+                    <div className="flex flex-col items-start text-left">
+                        <h1 id="hero-headline" className="text-5xl sm:text-7xl lg:text-8xl font-bold tracking-tighter text-slate-900 dark:text-white leading-[1.1] mb-6">
+                            Campus <br/>
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-600">Trading Levelled Up.</span>
+                        </h1>
+                        
+                        <p className="hero-content-reveal text-lg sm:text-xl text-slate-600 dark:text-slate-400 max-w-lg font-medium leading-relaxed mb-10">
+                            The intelligent secondary market for high-performance students. 
+                            Buy, sell, and liquidate gear instantly. Verified & Commission-free.
+                        </p>
+
+                        <div className="hero-content-reveal flex flex-wrap gap-4">
+                            <Link 
+                                to="/items" 
+                                ref={primaryBtnRef}
+                                className="relative px-8 py-4 bg-slate-900 dark:bg-white text-white dark:text-black rounded-full font-bold text-lg hover:shadow-2xl hover:shadow-emerald-500/20 transition-all flex items-center gap-2"
+                            >
+                                Start Trading
+                                <FiArrowRight />
+                            </Link>
+
+                            <Link 
+                                to="/items/create" 
+                                className="px-8 py-4 bg-white/10 border border-slate-200 dark:border-white/10 backdrop-blur-md text-slate-900 dark:text-white rounded-full font-bold text-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+                            >
+                                Liquidate Assets
+                            </Link>
+                        </div>
+                        
+                        <div className="hero-content-reveal mt-12 flex items-center gap-4 text-sm font-medium text-slate-500 dark:text-slate-500">
+                             <div className="flex -space-x-2">
+                                {[1,2,3].map(i => (
+                                    <div key={i} className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 border-2 border-white dark:border-black"></div>
+                                ))}
+                             </div>
+                             <div>Trusted by 2,000+ Students</div>
+                        </div>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                        <Link to="/items" className="group px-8 py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full font-bold text-lg transition-all shadow-lg hover:shadow-emerald-500/30 flex items-center gap-2 transform hover:-translate-y-1">
-                            Start Trading <FiArrowRight className="group-hover:translate-x-1 transition-transform" />
-                        </Link>
-                        <Link to="/items/create" className="px-8 py-4 bg-white/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white rounded-full font-bold text-lg hover:bg-white/80 dark:hover:bg-white/10 transition-colors backdrop-blur-sm">
-                            Liquidate Assets
-                        </Link>
+                    {/* RIGHT COLUMN: 3D Device Mockup */}
+                    <div className="relative perspective-1000 w-full flex justify-center lg:justify-end">
+                        <div 
+                            ref={deviceRef} 
+                            className="relative w-full max-w-[500px] aspect-[4/3] bg-slate-900 rounded-[2rem] border-[8px] border-slate-200 dark:border-[#1a1a1a] shadow-2xl dark:shadow-emerald-900/20 overflow-hidden transform-style-3d group"
+                        >
+                            {/* Device Gloss/Reflection */}
+                            <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent z-20 pointer-events-none"></div>
+
+                            {/* Image Slider */}
+                            <div className="absolute inset-0 z-10">
+                                {images.map((img, index) => (
+                                    <div 
+                                        key={index} 
+                                        className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentImage ? 'opacity-100' : 'opacity-0'}`}
+                                    >
+                                        <img 
+                                            src={img} 
+                                            alt="App Screenshot" 
+                                            className="w-full h-full object-cover"
+                                        />
+                                        <div className="absolute inset-0 bg-black/20"></div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* UI Overlay Mockup */}
+                            <div className="absolute top-0 left-0 right-0 h-14 bg-white/10 backdrop-blur-md z-30 flex items-center px-6 justify-between border-b border-white/5">
+                                <div className="w-20 h-2 rounded-full bg-white/20"></div>
+                                <div className="flex gap-2">
+                                    <div className="w-2 h-2 rounded-full bg-red-400"></div>
+                                    <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
+                                    <div className="w-2 h-2 rounded-full bg-green-400"></div>
+                                </div>
+                            </div>
+                            
+                            {/* Floating UI Elements inside Screen */}
+                            <div className="absolute bottom-8 left-8 right-8 z-30 p-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-between shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                                <div>
+                                    <div className="text-xs text-slate-500">Current Item</div>
+                                    <div className="font-bold text-slate-900 dark:text-white">Engineering Kit</div>
+                                </div>
+                                <div className="px-3 py-1 bg-emerald-500 text-white text-xs font-bold rounded-lg">
+                                    $45.00
+                                </div>
+                            </div>
+                            
+                            {/* Animated Progress Bar */}
+                            <div className="absolute top-14 left-0 h-[2px] bg-emerald-500 z-40 transition-all duration-300" style={{width: `${((currentImage + 1) / images.length) * 100}%`}}></div>
+
+                        </div>
+                        
+                        {/* Decorative Background for Device */}
+                         <div className="absolute inset-0 -z-10 bg-gradient-to-tr from-emerald-500/20 to-purple-500/20 blur-[80px] rounded-full opacity-50"></div>
                     </div>
+                    
                 </div>
             </section>
 
-            {/* BENTO GRID POWER FEATURES */}
+            {/* BENTO GRID POWER FEATURES (PRESERVED) */}
             <section ref={bentoRef} className="py-24 px-6 max-w-7xl mx-auto">
                 <div className="grid grid-cols-1 md:grid-cols-4 grid-rows-2 gap-4 h-auto md:h-[500px]">
-                    
-                    {/* Box 1: Smart Search (Large) */}
                     <div className="bento-box col-span-1 md:col-span-2 row-span-2 bg-white/60 dark:bg-slate-800/40 border border-slate-200 dark:border-white/5 rounded-3xl p-8 relative overflow-hidden flex flex-col justify-end group hover:border-emerald-500/30 transition-colors backdrop-blur-sm">
                         <div className="absolute top-8 left-8 right-8">
                              <div className="bg-white/80 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-xl p-3 flex items-center gap-3 backdrop-blur-sm shadow-sm">
@@ -221,7 +295,6 @@ const Home = () => {
                         <div className="absolute inset-0 bg-gradient-to-t from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     </div>
 
-                    {/* Box 2: Safe Zones (Small) */}
                     <div className="bento-box md:col-span-1 bg-white/60 dark:bg-slate-800/40 border border-slate-200 dark:border-white/5 rounded-3xl p-6 flex flex-col justify-between group hover:border-emerald-500/30 transition-colors relative overflow-hidden backdrop-blur-sm">
                         <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 mb-4 animate-pulse">
                             <FiCheckCircle size={20} />
@@ -235,7 +308,6 @@ const Home = () => {
                         </div>
                     </div>
 
-                    {/* Box 3: No Fees (Small) */}
                     <div className="bento-box md:col-span-1 bg-white/60 dark:bg-slate-800/40 border border-slate-200 dark:border-white/5 rounded-3xl p-6 flex flex-col justify-between group hover:border-emerald-500/30 transition-colors backdrop-blur-sm">
                         <div className="w-10 h-10 rounded-full bg-yellow-500/10 flex items-center justify-center text-yellow-500 mb-4 font-mono font-bold">
                             ₹
@@ -246,7 +318,6 @@ const Home = () => {
                         </div>
                     </div>
 
-                    {/* Box 4: Verified Only (Medium) */}
                     <div className="bento-box md:col-span-2 bg-white/60 dark:bg-slate-800/40 border border-slate-200 dark:border-white/5 rounded-3xl p-8 flex items-center justify-between group hover:border-emerald-500/30 transition-colors relative overflow-hidden backdrop-blur-sm">
                          <div className="relative z-10 max-w-[60%]">
                              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Verified Students Only</h3>
@@ -257,11 +328,10 @@ const Home = () => {
                              <div className="absolute inset-0 bg-white/30 animate-scan-y"></div>
                          </div>
                     </div>
-
                 </div>
             </section>
 
-             {/* FLOATING INVENTORY PREVIEW */}
+             {/* FLOATING INVENTORY PREVIEW (PRESERVED) */}
             <section ref={inventoryRef} className="py-20 px-6 max-w-7xl mx-auto">
                 <div className="flex justify-between items-end mb-12">
                     <div>
@@ -274,16 +344,14 @@ const Home = () => {
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                    {/* Mock Items for Display */}
                     {[1, 2, 3, 4].map((i) => (
                         <div key={i} className="inventory-item group relative aspect-[4/5] rounded-2xl overflow-hidden cursor-pointer shadow-sm hover:shadow-xl transition-shadow">
                             <div className="absolute inset-0 bg-slate-200 dark:bg-slate-800 animate-pulse"></div> 
-                            {/* Placeholder for real images. In real app, map real items */}
                             <img 
                                 src={`https://source.unsplash.com/random/400x500?tech,book&sig=${i}`} 
                                 alt="Item" 
                                 className="absolute inset-0 w-full h-full object-cover opacity-90 dark:opacity-80 group-hover:scale-110 transition-transform duration-700"
-                                onError={(e) => e.target.style.display = 'none'} // Fallback if unsplash fails
+                                onError={(e) => e.target.style.display = 'none'} 
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 to-transparent opacity-60 group-hover:opacity-80 transition-opacity"></div>
                             

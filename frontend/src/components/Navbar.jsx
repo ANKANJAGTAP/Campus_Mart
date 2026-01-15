@@ -152,7 +152,7 @@ const Navbar = () => {
   return (
     <>
       {/* TOP NAVBAR */}
-      <nav className="w-full bg-transparent border-b border-white/5 shadow-sm fixed top-0 z-50 transition-all duration-300 backdrop-blur-xl">
+      <nav className="w-full bg-white/60 dark:bg-black/60 border-b border-slate-200 dark:border-white/5 shadow-sm fixed top-0 z-50 transition-all duration-300 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
 
           {/* Logo */}
