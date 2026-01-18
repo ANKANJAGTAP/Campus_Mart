@@ -20,7 +20,8 @@ const app = express();
 const httpServer = createServer(app);
 const getClientUrls = () => {
     const urls = process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',') : [];
-    return urls.map(url => url.trim());
+    const defaults = ["http://localhost:5173", "http://localhost:5174"];
+    return [...new Set([...urls.map(url => url.trim()), ...defaults])];
 };
 
 const allowedOrigins = getClientUrls();

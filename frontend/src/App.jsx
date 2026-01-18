@@ -1,4 +1,5 @@
 import { Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
 import Login from "./pages/Login.jsx";
 
 import Register from "./pages/Register.jsx";
@@ -17,8 +18,33 @@ import OrderDetail from "./pages/OrderDetail.jsx";
 // ... imports
 import { ThemeProvider } from "./context/ThemeContext";
 import { NotificationProvider } from "./context/NotificationContext";
+import Lenis from '@studio-freight/lenis';
 
 function App() {
+  
+  useEffect(() => {
+    const lenis = new Lenis({
+        duration: 1.2,
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        direction: 'vertical',
+        gestureDirection: 'vertical',
+        smooth: true,
+        smoothTouch: false,
+        touchMultiplier: 2,
+    });
+
+    function raf(time) {
+        lenis.raf(time);
+        requestAnimationFrame(raf);
+    }
+
+    requestAnimationFrame(raf);
+
+    return () => {
+        lenis.destroy();
+    };
+  }, []);
+
   return (
     <ThemeProvider>
       <NotificationProvider>

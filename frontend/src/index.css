@@ -1,6 +1,6 @@
-@import "tailwindcss";
-@import url('https://api.fontshare.com/v2/css?f[]=clash-display@200,300,400,500,600,700&display=swap');
+@import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@200,300,400,500,600,700&display=swap');
 @import url('https://api.fontshare.com/v2/css?f[]=general-sans@200,300,400,500,600,700&display=swap');
+@import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -17,7 +17,7 @@
 
   /* Typography */
   --font-sans: "General Sans", sans-serif;
-  --font-heading: "Clash Display", sans-serif;
+  --font-heading: "Cabinet Grotesk", sans-serif;
 }
 
 @utility perspective-1000 {

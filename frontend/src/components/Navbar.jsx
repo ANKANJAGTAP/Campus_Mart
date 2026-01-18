@@ -1,6 +1,6 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import {
   FiMenu,
@@ -12,7 +12,8 @@ import {
   FiLogOut,
   FiBox,
   FiSun,
-  FiMoon
+  FiMoon,
+  FiSearch
 } from "react-icons/fi";
 import { useTheme } from "../context/ThemeContext";
 import { useNotification } from "../context/NotificationContext";
@@ -25,9 +26,22 @@ const Navbar = () => {
   const [open, setOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const isActive = (path) => location.pathname === path;
+  const isMarketPage = location.pathname === "/items";
 
+  const handleSearch = (e) => {
+      const term = e.target.value;
+      const newParams = new URLSearchParams(searchParams);
+      if (term) {
+          newParams.set("search", term);
+      } else {
+          newParams.delete("search");
+      }
+      setSearchParams(newParams);
+  };
+// ... existing components ...
   const ThemeToggle = () => (
     <button 
       onClick={(e) => {
@@ -99,97 +113,155 @@ const Navbar = () => {
     </div>
   );
 
-  const NavLinks = () => (
-    <>
-      <Link to="/" className={`nav-link ${isActive("/") ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400" : ""}`} onClick={() => setOpen(false)}>
-        <FiHome /> Home
-        {isActive("/") && <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-emerald-500 rounded-full md:hidden"></span>}
-      </Link>
+  const NavLinks = ({ mobile = false }) => {
+    const linkBaseClass = mobile 
+      ? "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200"
+      : "relative px-1 py-2 text-sm font-medium transition-colors duration-200";
 
-      {user ? (
+    const activeClass = mobile
+      ? "bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white font-bold"
+      : "text-slate-900 dark:text-white";
+
+    const inactiveClass = mobile
+      ? "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white"
+      : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white";
+
+    const DesktopActiveIndicator = () => (
+        <span className="absolute bottom-0 left-0 w-full h-0.5 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+    );
+
+    return (
         <>
-          <Link to="/orders" className={`nav-link ${isActive("/orders") ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400" : ""}`} onClick={() => setOpen(false)}>
-            <FiShoppingBag /> Orders
-          </Link>
+            <Link 
+                to="/" 
+                className={`${linkBaseClass} ${isActive("/") ? activeClass : inactiveClass}`}
+                onClick={() => setOpen(false)}
+            >
+                <div className="flex items-center gap-2">
+                    {mobile && <FiHome />}
+                    <span>Home</span>
+                </div>
+                {!mobile && isActive("/") && <DesktopActiveIndicator />}
+            </Link>
 
-          <Link to="/items" className={`nav-link ${isActive("/items") ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400" : ""}`} onClick={() => setOpen(false)}>
-            <FiBox /> Items
-          </Link>
+            {user ? (
+                <>
+                    <Link 
+                        to="/orders" 
+                        className={`${linkBaseClass} ${isActive("/orders") ? activeClass : inactiveClass}`}
+                        onClick={() => setOpen(false)}
+                    >
+                        <div className="flex items-center gap-2">
+                            {mobile && <FiShoppingBag />}
+                            <span>Orders</span>
+                        </div>
+                        {!mobile && isActive("/orders") && <DesktopActiveIndicator />}
+                    </Link>
 
-          <Link to="/favorite" className={`nav-link ${isActive("/favorite") ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400" : ""}`} onClick={() => setOpen(false)}>
-            <FiHeart /> Favorites
-          </Link>
+                    <Link 
+                        to="/items" 
+                        className={`${linkBaseClass} ${isActive("/items") ? activeClass : inactiveClass}`}
+                        onClick={() => setOpen(false)}
+                    >
+                        <div className="flex items-center gap-2">
+                            {mobile && <FiBox />}
+                            <span>Market</span>
+                        </div>
+                        {!mobile && isActive("/items") && <DesktopActiveIndicator />}
+                    </Link>
 
-          <Link to="/my-account" className={`nav-link ${isActive("/my-account") ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400" : ""}`} onClick={() => setOpen(false)}>
-            {user.image ? (
-                <img src={user.image} alt="Profile" className="w-5 h-5 rounded-full object-cover border-none" />
+                    <Link 
+                        to="/favorite" 
+                        className={`${linkBaseClass} ${isActive("/favorite") ? activeClass : inactiveClass}`}
+                        onClick={() => setOpen(false)}
+                    >
+                        <div className="flex items-center gap-2">
+                            {mobile && <FiHeart />}
+                            <span>Favorites</span>
+                        </div>
+                        {!mobile && isActive("/favorite") && <DesktopActiveIndicator />}
+                    </Link>
+
+                    <div className={`h-6 w-px bg-slate-200 dark:bg-white/10 mx-2 ${mobile ? 'hidden' : 'block'}`}></div>
+
+                    <Link 
+                        to="/my-account" 
+                        className={ mobile 
+                            ? `${linkBaseClass} ${isActive("/my-account") ? activeClass : inactiveClass}`
+                            : `flex items-center gap-2 pl-1 pr-2 py-1.5 rounded-full transition-all duration-200 border ${isActive("/my-account") ? "border-emerald-500/30 bg-emerald-500/5 text-emerald-600 dark:text-emerald-400" : "border-transparent hover:bg-slate-100 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300"}`
+                        }
+                        onClick={() => setOpen(false)}
+                    >
+                        {user.image ? (
+                            <img src={user.image} alt="Profile" className="w-6 h-6 rounded-full object-cover" />
+                        ) : (
+                            <div className="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xs">
+                                <FiUser />
+                            </div>
+                        )}
+                        <span className="text-sm font-medium">Account</span>
+                    </Link>
+                </>
             ) : (
-                <FiUser />
+                <>
+                    <div className={`h-6 w-px bg-slate-200 dark:bg-white/10 mx-2 ${mobile ? 'hidden' : 'block'}`}></div>
+                    <Link 
+                        to="/login" 
+                        className={`${linkBaseClass} ${inactiveClass}`} 
+                        onClick={() => setOpen(false)}
+                    >
+                        Log In
+                    </Link>
+                    <Link 
+                        to="/register" 
+                        className={mobile 
+                            ? "w-full text-center py-3 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-black font-bold mt-2" 
+                            : "px-5 py-2 text-sm font-bold bg-slate-900 dark:bg-white text-white dark:text-black rounded-lg hover:bg-slate-800 dark:hover:bg-slate-200 transition shadow-lg shadow-emerald-500/10"
+                        } 
+                        onClick={() => setOpen(false)}
+                    >
+                        Sign Up
+                    </Link>
+                </>
             )}
-            Account
-          </Link>
-
-          <button onClick={logout} className="nav-link text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20">
-            <FiLogOut /> Logout
-          </button>
         </>
-      ) : (
-        <>
-           <Link to="/items" className={`nav-link ${isActive("/items") ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400" : ""}`} onClick={() => setOpen(false)}>
-            <FiBox /> Browse
-          </Link>
-          <Link to="/login" className="nav-link" onClick={() => setOpen(false)}>
-            Login
-          </Link>
-          <Link to="/register" className="bg-emerald-500 text-white px-5 py-2 rounded-full font-bold shadow-md hover:bg-emerald-600 transition" onClick={() => setOpen(false)}>
-            Sign Up
-          </Link>
-        </>
-      )}
-    </>
-  );
+    );
+  };
 
   return (
     <>
       {/* TOP NAVBAR */}
-      <nav className="w-full bg-white/60 dark:bg-black/60 border-b border-slate-200 dark:border-white/5 shadow-sm fixed top-0 z-50 transition-all duration-300 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
+      <nav className="fixed top-0 inset-x-0 z-50 h-16 sm:h-20 bg-white/80 dark:bg-[#02040a]/80 backdrop-blur-md border-b border-slate-200 dark:border-white/5 transition-all duration-300">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between gap-4">
 
-          {/* Logo */}
-          <Link
-            to="/"
-            className="flex items-center gap-2 group"
-          >
-            <img
-              src="/logo.png"
-              alt="logo"
-              className="h-9 w-9 transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110"
-            />
-            <span className="text-xl font-bold text-accent group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition">
-              CampusMart
-            </span>
+          {/* Logo Area */}
+          <Link to="/" className="flex items-center gap-2 group shrink-0">
+             <div className="w-8 h-8 bg-black dark:bg-white rounded-lg flex items-center justify-center text-white dark:text-black font-heading font-black text-lg">
+                 C
+             </div>
+             <span className="hidden sm:block text-xl font-heading font-bold text-slate-900 dark:text-white tracking-tight">CampusMart</span>
           </Link>
 
-
-          {/* Desktop Links */}
-          <div className="hidden md:flex items-center gap-6 text-text-primary">
-            {/* Notification Bell */}
-            <NotificationIcon />
-
-            <NavLinks />
-            <div className="h-6 w-px bg-border-color mx-2"></div>
-            <ThemeToggle />
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-6 shrink-0">
+             <NavLinks />
           </div>
 
-          <div className="flex md:hidden items-center gap-4">
-            <ThemeToggle />
+          {/* Right Actions */}
+          <div className="hidden md:flex items-center gap-3 shrink-0">
+             <NotificationIcon />
+             <ThemeToggle />
+          </div>
+
+          {/* Mobile Actions */}
+          <div className="flex md:hidden items-center gap-4 ml-auto">
             <NotificationIcon />
-            {/* Mobile Menu Icon */}
+            <ThemeToggle />
             <button
                 onClick={() => setOpen(true)}
-                className="text-2xl text-text-primary"
+                className="p-2 text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition"
             >
-                <FiMenu />
+                <FiMenu size={24} />
             </button>
           </div>
         </div>
@@ -198,39 +270,47 @@ const Navbar = () => {
       {/* MOBILE SIDEBAR OVERLAY */}
       {open && (
         <div
-          className="fixed inset-0 bg-black/40 z-40"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] transition-opacity duration-300"
           onClick={() => setOpen(false)}
         />
       )}
 
       {/* MOBILE SIDEBAR */}
       <aside
-        className={`fixed top-0 left-0 h-full w-64 bg-nav-bg z-50 transform ${
-          open ? "translate-x-0" : "-translate-x-full"
-        } transition-transform duration-300`}
+        className={`fixed top-0 right-0 h-full w-[80%] max-w-sm bg-white dark:bg-[#0B0E14] z-[70] transform ${
+          open ? "translate-x-0" : "translate-x-full"
+        } transition-transform duration-500 cubic-bezier(0.16, 1, 0.3, 1) shadow-2xl border-l border-slate-200 dark:border-white/5`}
       >
-        {/* Sidebar Header */}
-        <div className="flex items-center justify-between px-4 h-16 border-b">
-          <span className="text-lg font-semibold text-accent">
-            Menu
-          </span>
-          <button
-            onClick={() => setOpen(false)}
-            className="p-2 rounded-full hover:bg-gray-100 transition"
-          >
-            <FiX size={24} />
-          </button>
+        <div className="flex flex-col h-full">
+            {/* Header */}
+            <div className="px-6 h-20 flex items-center justify-between border-b border-slate-100 dark:border-white/5">
+                <span className="font-bold font-heading text-lg text-slate-900 dark:text-white">Menu</span>
+                <button
+                    onClick={() => setOpen(false)}
+                    className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 transition text-slate-500"
+                >
+                    <FiX size={24} />
+                </button>
+            </div>
 
-        </div>
-
-        {/* Sidebar Links */}
-        <div className="flex flex-col p-4 gap-4 text-text-primary">
-          <NavLinks />
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-2">
+                <NavLinks mobile={true} />
+            </div>
+            
+            {/* Footer */}
+            {user && (
+                <div className="p-6 border-t border-slate-100 dark:border-white/5">
+                    <button onClick={logout} className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-red-50 text-red-600 dark:bg-red-900/10 dark:text-red-400 font-bold hover:bg-red-100 dark:hover:bg-red-900/20 transition">
+                        <FiLogOut /> Logout
+                    </button>
+                </div>
+            )}
         </div>
       </aside>
 
-      {/* Spacer */}
-      <div className="h-16" />
+      {/* Spacer to prevent content overlap */}
+      <div className="h-20" />
     </>
   );
 };
