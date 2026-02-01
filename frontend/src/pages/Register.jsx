@@ -28,7 +28,11 @@ const Register = () => {
   };
 
   const handleLocationChange = (newLocation) => {
-      setForm({ ...form, location: newLocation });
+      if (typeof newLocation === 'function') {
+          setForm(prev => ({ ...prev, location: newLocation(prev.location) }));
+      } else {
+          setForm(prev => ({ ...prev, location: newLocation }));
+      }
   }
 
   const submit = async (e) => {
